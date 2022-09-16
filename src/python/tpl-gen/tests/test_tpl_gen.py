@@ -2,11 +2,11 @@ import os
 from tpl_gen import main, set_vars
 
 
-def test_test():
+def test_main():
     if os.getenv("ENV") is None:
         os.environ["ENV"] = "lde"
 
-    _, product_dir, env = set_vars()
+    _, env, product_dir, __ = set_vars()
     main()
 
     gen_file_p = os.path.join(product_dir, "src", "bash",

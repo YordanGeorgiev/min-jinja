@@ -1,3 +1,4 @@
+#!/bin/bash
 #------------------------------------------------------------------------------
 # usage example:
 # source $PRODUCT/lib/bash/funcs/export-json-section-vars.sh
@@ -18,13 +19,25 @@ do_export_json_section_vars(){
    test -z "$section" && exit 1
    shift 1;
 
-   do_flush_screen
+   sensitiveness="${1:-}"
+   shift 1;
 
    echo "INFO exporting vars from cnf $json_file: "
    while read -r l ; do
-      key=$(echo $l|cut -d'=' -f1)
-      val=$(echo $l|cut -d'=' -f2)
+      key=$(echo $l|cut -d':' -f1|tr a-z A-Z)
+      val=$(echo $l|cut -d':' -f2)
+
+      #val="${val/#\~/$HOME}" # for some reason does not work !!
+      val=$(echo $val|perl -ne 's|~|'$HOME'|g;print')
       eval "$(echo -e 'export '$key=\"\"$val\"\")"
-      echo "INFO setting $key=$val"
-   done < <(cat "$json_file"| jq -r "$section"'|keys_unsorted[] as $key|"\($key)=\"\(.[$key])\""')
+
+      # does not echo sensitive values
+      if [[ "${sensitiveness}" == "" ]]; then
+         echo "INFO ${key}=${val}"
+      else
+         echo "INFO SENSITIVE ${key}=*****************"
+      fi
+
+   done < <(cat "$json_file"| jq -r "$section"'|keys_unsorted[] as $key|"\($key):\"\(.[$key])\""')
+
 }

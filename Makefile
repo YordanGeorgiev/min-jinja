@@ -1,36 +1,23 @@
-# file: Makefile
+# Makefile
 # usage: run the "make" command in the root, than make <<cmd>>...
-#
-# get all the generic fully re-usable make functions
 include $(wildcard lib/make/*.mk)
-#
-# get all the project logic specific tasks
 include $(wildcard src/make/*.mk)
 
+# get those from the env when in azure, otherwise get locally
+BUILD_NUMBER := $(if $(BUILD_NUMBER),$(BUILD_NUMBER),"0")
+COMMIT_SHA := $(if $(COMMIT_SHA),$(COMMIT_SHA),$$(git rev-parse --short HEAD))
+COMMIT_MESSAGE := $(if $(COMMIT_MESSAGE),$(COMMIT_MESSAGE),$$(git log -1  --pretty='%s'))
+
+SHELL = bash
 PRODUCT := $(shell basename $$PWD)
-product := $(shell echo `basename $$PWD`|tr '[:upper:]' '[:lower:]')
+PP_NAME := $(shell echo $$PWD|xargs dirname | xargs basename)
+PRODUCT_DIR := $(HOME)/$(PP_NAME)/$(PRODUCT)
+PROCESSOR_ARCHITECTURE := $(shell uname -m)
 
 
-.PHONY: install  ## @-> setup the whole local tpl-gen environment (alias)
-install: install-tpl-gen
 
+.PHONY: install ## @-> install both the devops-ter and the tpl-gen containers
+install:
+	@clear 
+	ORG=$(ORG) APP=$(APP) ENV=$(ENV) make clean-install-tpl-gen
 
-.PHONY: clean-install  ## @-> setup the whole local tpl-gen environment (alias), no docker cache !
-clean-install: clean-install-tpl-gen
-
-
-.PHONY: run ## @-> run some function , in this case hello world
-run:
-	./run -a do_run_hello_world
-
-
-.PHONY: do_run ## @-> run some function , in this case hello world
-do_run:
-	docker exec -it proj-con ./run -a do_run_hello_world
-
-
-.PHONY: spawn_tgt_project ## @-> spawn a new target project
-spawn_tgt_project: demand_var-TGT_PROJ zip_me
-	-rm -r $(shell echo $(dir $(abspath $(dir $$PWD)))$$TGT_PROJ)
-	unzip -o ..$(product).zip -d $(shell echo $(dir $(abspath $(dir $$PWD)))$$TGT_PROJ)
-	to_srch=$(product) to_repl=$(shell echo $$TGT_PROJ) dir_to_morph=$(shell echo $(dir $(abspath $(dir $$PWD)))$$TGT_PROJ) ./run -a do_morph_dir

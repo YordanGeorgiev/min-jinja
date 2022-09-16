@@ -1,0 +1,43 @@
+{
+    "Version": "2012-10-17",
+    "Statement": {
+        "Effect": "Allow",
+        "Action": [
+          "acm:*",
+          "cloudwatch:*",
+          "cognito-identity:*",
+          "cognito-idp:*",
+          "config:*",
+          "dynamodb:*",
+          "ec2:*",
+          "autoscaling:*",
+          "es:*",
+          "kms:*",
+          "lambda:*",
+          "rds:*",
+          "rds-db:*",
+          "s3:*",
+          "sns:*",
+          "secretsmanager:*",
+          "eks:*",
+          "iam:*",
+          "sts:*",
+          "logs:*",
+          "cloudtrail:*",
+          "guardduty:*",
+          "cognito-sync:*",
+          "sqs:*",
+          "apigateway:*",
+          "access-analyzer:*",
+          "aws-marketplace:*",
+          "dax:*",
+          "ds:*",
+          "ecr:*",
+          "ebs:*",
+          "trustedadvisor:*",
+          "organizations:*",
+          "sagemaker:*"
+        ],
+        "Resource": ["*"]
+    }
+}

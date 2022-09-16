@@ -1,58 +1,51 @@
-# tpl-gen (A Minimalistic Jinja templates generator)
+# tpl-gen
 
-[![GitHub](https://img.shields.io/github/license/brunurd/tpl-gen)][license-url]
+## INTRO
+The best shell envokable shell generator out there ... 
 
-A template generator using Jinja2 and Smarty TPL files.
+## SETUP & INSTALL
 
----
-
-## Prerequisites
+## Pre-requesites
 - bash
 - make
 - docker
+- jq
 
----
 
-## Usage
-Is possible to show all available make actions calling:
+## GET THE SOURCE
+To avoid any file permissions errors use a conventional dir to clone the project into.
 ```bash
-make help
-# or
+mkdir -p ~/opt/ ; cd $_ # ~/opt/ is just a convention
+git clone git@github.com:csitea/tpl-gen.git
+cd ~/opt/tpl-gen
+find . | sort | less
+```
+
+## CHECK THE USAGE
+The make is usually used for oneliners to deploy / install project components
+```bash
 make
 ```
 
-## SETUP
-Build an ubuntu 20.04 image and initialize a container with all required dependencies:
+The `./run` is usually used for oneliners to run quick actions
 ```bash
-make install
-# you should wait a bit after the attach to give the 
+./run --help
 
-# which is the same as 
-make install-tpl-gen
-# to run without using the docker cache
-make clean-install-tpl-gen
+
+
 ```
 
-## LINT
-Build an ubuntu 20.04 image and initialize a container with all required dependencies:
+### SETUP DOCKER ENVIRONMENT
+The tpl-gen docker has all the needed binaries create configuration files from templates.
 ```bash
-# run the tests in the tpl-gen python project
-docker exec -it tpl-gen-tpl-gen-con ./run -a do_run_pylint_in_python_files
-```
+# always go to the project root dir - aka the product dir
+cd ~/opt/tpl-gen
 
-## TESTS
-Build an ubuntu 20.04 image and initialize a container with all required dependencies:
-```bash
-# run the tests in the tpl-gen python project
-make do-test-tpl-gen
+make clean-install-tpl-gen  # install without reusing layers
+make install-tpl-gen        # install from cached layers (faster)
+
+# generate the templates 
+ORG=org APP=app ENV=dev make do-tpl-gen
 ```
 
 
-
-## Run
-Run the Templating 
-```bash
-make do-tpl-gen
-```
-
-[license-url]: LICENSE

@@ -1,0 +1,65 @@
+FROM python:3.8.3-alpine
+
+ARG ENV
+ARG UID
+ARG GID
+ARG PP_NAME
+ARG PRODUCT
+ARG ORG
+
+ENV PRODUCT=$PRODUCT
+ENV ORG=$ORG
+ENV APPUSR=appusr
+ENV APPGRP=appgrp
+ENV PS1='`date "+%F %T"` \u@\h  \w \n\n  '
+ENV PP_NAME=$PP_NAME
+ENV PRODUCT_DIR="/$PP_NAME/$PRODUCT"
+ENV EDITOR="vim"
+ENV ENV=$ENV
+
+VOLUME $PRODUCT_DIR
+
+# install OS utils
+RUN apk update && apk upgrade && apk add --no-cache \
+    bash binutils vim perl jq wget curl zip unzip busybox-extras su-exec sudo shadow
+
+# install backend-utils
+RUN apk update && apk upgrade && apk add --no-cache \
+    build-base gcc openssl-dev python3-dev libmagic ttf-freefont \
+    python3-dev jpeg-dev zlib-dev coreutils libffi-dev
+
+
+# start ::: adding OS APPUSR and APPGRP
+RUN test -z $(getent group $GID | cut -d: -f1) || \
+        groupmod -g $((GID+1000)) $(getent group $GID | cut -d: -f1)
+
+# create a APPGRP and APPUSR
+RUN set -x ; addgroup -g "$GID" -S "$APPGRP" && \
+  adduser \
+  --disabled-password \
+  -g "$GID" \
+  -D \
+  -s "/bin/bash" \
+  -h "/home/$APPUSR" \
+  -u "$UID" \
+  -G "$APPGRP" "$APPUSR" && exit 0 ; exit 1
+
+RUN echo "$APPUSR ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+RUN echo "export PS1=\"$PS1\"" >> /home/$APPUSR/.bashrc && \
+  sudo chown -R $APPUSR:$APPGRP /home/$APPUSR && \
+  sudo chmod -R 0775 /home/$APPUSR
+
+
+RUN wget https://bootstrap.pypa.io/get-pip.py ; sudo python3 get-pip.py ; sudo rm -v get-pip.py
+
+USER $APPUSR
+ADD --chown=$APPUSR:$APPGRP "." /home/$APPUSR$PRODUCT_DIR
+# stop ::: adding OS APPUSR and APPGRP
+
+# Note: using $APPUSR/$PRODUCT_DIR will result in /home/appusr//pp-name/product/r
+#                                                         ~~~^^^~~~
+RUN SUB_COMPONENT=tpl-gen bash /home/$APPUSR$PRODUCT_DIR/run -a do_check_install_py_modules
+
+WORKDIR $PRODUCT_DIR
+
+CMD exec /bin/bash -c /home/$APPUSR$PRODUCT_DIR/src/bash/run/docker-init-tpl-gen.sh
